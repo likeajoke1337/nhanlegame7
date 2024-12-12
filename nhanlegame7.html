@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thành Nhân Đzai</title>
+    <style>
+        
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Noto Serif', serif;
+            background: linear-gradient(to right, #ffecd2, #fcb69f);
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+            color: #333;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #4a148c;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .cell {
+            padding: 20px;
+            border-radius: 10px;
+            background: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            color: #4a148c;
+            transition: all 0.3s ease;
+        }
+        .cell:hover {
+            transform: scale(1.1);
+            background: #fce4ec;
+        }
+        .hidden {
+            background: #f8bbd0;
+            color: transparent;
+            position: relative;
+        }
+        .hidden::after {
+            content: attr(data-number);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #880e4f;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .shuffle-btn {
+            padding: 10px 20px;
+            background: #7b1fa2;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        .shuffle-btn:hover {
+            background: #4a148c;
+        }
+        .result {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .result.wrong {
+            color: #d32f2f;
+        }
+        .result.correct {
+            color: #388e3c;
+        }
+    </style>
+</head>
+<body>
+    <h1>Trò Chơi Ca Dao Tục Ngữ</h1>
+    <h3>Nhóm 7</h3>
+    <p>Ghi nhớ vị trí của các câu ca dao tục ngữ, sau đó thử tìm lại từng câu khi các ô bị tráo!</p>
+
+    <div class="grid" id="proverb-grid">
+        <!-- Câu ca dao tục ngữ sẽ được tạo động ở đây -->
+    </div>
+
+    <button class="shuffle-btn" id="start-game">Bắt Đầu</button>
+
+    <p id="result" class="result hidden"></p>
+
+    <script>
+        const allProverbs = [
+            "Ăn quả nhớ kẻ trồng cây",
+            "Công cha như núi Thái Sơn, nghĩa mẹ như nước trong nguồn chảy ra",
+            "Nhất tự vi sư, bán tự vi sư",
+            "Một miếng khi đói bằng một gói khi no",
+            "Ăn bát cơm đầy, nhớ người cày cuốc",
+            "Non xanh nước biêc nhờ người khai hoang",
+            "Ơn dày nghĩa nặng, đời đời không quên",
+            "Uống nước nhớ nguồn",
+            "Chim có tổ, người có tông",
+            "Không thầy đố mày làm nên"
+        ];
+
+        const proverbGrid = document.getElementById('proverb-grid');
+        const startGameBtn = document.getElementById('start-game');
+        const resultDiv = document.getElementById('result');
+
+        let positions = []; 
+
+        function getRandomProverbs(count) {
+            const shuffled = allProverbs.sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
+
+        function displayProverbs(order, hideText = false) {
+            proverbGrid.innerHTML = '';
+            order.forEach((pos, i) => {
+                const div = document.createElement('div');
+                div.classList.add('cell');
+                div.dataset.index = pos.index;
+                div.dataset.number = pos.number; 
+                div.textContent = proverbs[pos.index];
+
+                if (hideText) {
+                    div.classList.add('hidden');
+                }
+
+                proverbGrid.appendChild(div);
+                div.addEventListener('click', () => {
+                    if (hideText) {
+                        checkAnswer(div);
+                    }
+                });
+            });
+        }
+
+        function shuffleEffect(callback) {
+            let swaps = 20; 
+            let interval = setInterval(() => {
+                const idx1 = Math.floor(Math.random() * positions.length);
+                const idx2 = Math.floor(Math.random() * positions.length);
+                [positions[idx1], positions[idx2]] = [positions[idx2], positions[idx1]];
+                displayProverbs(positions, true); 
+                swaps--;
+                if (swaps <= 0) {
+                    clearInterval(interval);
+                    callback();
+                }
+            }, 300); 
+        }
+
+        function startGame() {
+            
+            proverbs = getRandomProverbs(5);
+            positions = proverbs.map((_, index) => ({ index, number: index + 1 }));
+
+            
+            displayProverbs(positions);
+
+            
+            setTimeout(() => {
+                
+                shuffleEffect(() => {
+                    displayProverbs(positions, true); 
+                });
+            }, 10000); 
+        }
+
+        function checkAnswer(cell) {
+            const index = parseInt(cell.dataset.index);
+            cell.textContent = proverbs[index];
+            cell.classList.remove('hidden');
+        }
+
+        startGameBtn.addEventListener('click', startGame);
+    </script>
+</body>
+</html>
